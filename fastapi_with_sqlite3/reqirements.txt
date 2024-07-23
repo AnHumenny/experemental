@@ -1,0 +1,6 @@
+fastapi
+sqlalchemy
+unicorn
+aiosqlite
+PyMySQL
+pydantic
