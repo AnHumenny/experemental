@@ -1,0 +1,8 @@
+fastapi
+sqlalchemy
+unicorn
+aiosqlite
+PyMySQL
+pydantic
+mysql
+python-multipart
