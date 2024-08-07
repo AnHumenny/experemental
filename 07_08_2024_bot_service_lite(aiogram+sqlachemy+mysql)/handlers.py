@@ -114,7 +114,7 @@ async def cmd_auth(msg: Message, state: FSMContext):
                 await msg.answer(
                     text=f"Набери\n/help, {result.name}"
                     )
-                await bot.send_message(408397675, 'В бот зашёл ' + result.name)  #ошибка незакрытой сессии
+                await bot.send_message(my_tg_id, 'В бот зашёл ' + result.name)  #ошибка незакрытой сессии
                 await state.clear()
                 return
 
@@ -146,7 +146,8 @@ async def message_handler(msg: Message):
     else:
         content = as_list("ООО '          '")
         await msg.reply(**content.as_kwargs())
-#куда везти реестры
+
+#реестры
 @router.message(F.text, Command("registers"))
 async def message_handler(msg: Message):
     if Registred.login not in lists.id_user and Registred.user_OK is False:  # проверка статуса
@@ -156,6 +157,7 @@ async def message_handler(msg: Message):
         return
     else:
         await msg.answer("        ")
+        
 #список контактов по МТС
 @router.message(F.text, Command('contact'))
 async def message_handler(msg: Message):
@@ -167,7 +169,6 @@ async def message_handler(msg: Message):
     else:
         content = as_list(*lists.contact)
         await msg.answer(**content.as_kwargs())
-
 
 #поиск АЗС по номеру
 @router.message(StateFilter(None), Command("view_azs"))
@@ -210,11 +211,9 @@ async def select_azs(msg: Message, state: FSMContext):
                 return
 
 
-#поиск man по id
+#поиск manual по id
 @router.message(StateFilter(None), Command("view_man"))
 async def view_man_select(msg: Message, state: FSMContext):
-    print(lists.id_user)
-    print('help', Registred.login, Registred.user_OK)
     if Registred.login in lists.id_user and Registred.user_OK is True:  # проверка статуса
         content = as_list(*lists.man)
         await msg.answer(**content.as_kwargs())
@@ -250,7 +249,6 @@ async def select_man(msg: Message, state: FSMContext):
                 await msg.answer(text=f"ID unknown!")
                 return
 
-
 #внешние ссылки
 @router.message(Command("inline_url"))
 async def cmd_inline_url(msg: types.Message):
@@ -273,7 +271,6 @@ async def cmd_inline_url(msg: types.Message):
 #выборка действий пользователя
 @router.message(StateFilter(None), Command("view_action"))
 async def view_action_select(msg: Message, state: FSMContext):
-    print('help', Registred.login, Registred.user_OK)
     if Registred.login in lists.log_admin and Registred.admin_OK is True:  # проверка статуса
         await msg.answer(
             text=f"Пользовательсткие запросы(количество): ",
