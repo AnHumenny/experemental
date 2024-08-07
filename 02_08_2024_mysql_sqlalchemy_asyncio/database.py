@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
 engine = create_async_engine(
-    "mysql+asyncmy://db_user:db_password@localhost/orm_result"
+    "mysql+asyncmy://db_user:db_password@localhost/db_name"
 )
 
 new_session = async_sessionmaker(engine, expire_on_commit=False)
