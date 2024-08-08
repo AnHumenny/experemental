@@ -40,7 +40,7 @@ class DUser(Model):
     login = Column(String(30))
     name = Column(String(30))
     status = Column(String(15))
-    password = Column(BOOLEAN)
+    password = Column(BOOLEAN)    #подкорректировать в BLOB!!!
     phone = Column(String(14))
     email = Column(String(50))
     tg_id = Column(String(50))
