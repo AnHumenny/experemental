@@ -13,9 +13,7 @@ import keyboards
 from repository import Repo
 from time import sleep
 
-
 router = Router()
-
 
 class SelectInfo(StatesGroup):
     register_user = State()
@@ -23,7 +21,6 @@ class SelectInfo(StatesGroup):
     view_man = State()
     view_action = State()
     select_action = State()
-
 
 class Registred:
     admin_OK = False
@@ -33,10 +30,8 @@ class Registred:
     name = ''
     count = 0
 
-
 named_tuple = time.localtime()  # получаем struct_time
 time_string = time.strftime("%m/%d/%Y, %H:%M", named_tuple)
-
 
 @router.message(StateFilter(None), Command("start"))
 async def start_handler(msg: Message, state=FSMContext):
@@ -46,20 +41,27 @@ async def start_handler(msg: Message, state=FSMContext):
         reply_markup=keyboards.make_row_keyboard(['xxxxx'])
     )
     await state.set_state(SelectInfo.register_user)  # ожидание выбора на виртуальной клавиатуре
+
+
 #ввод и проверка пароля
 @router.message(SelectInfo.register_user)
 async def cmd_auth(msg: Message, state: FSMContext):
+    if Registred.count > 3:
+        Registred.count = 0
     bot = Bot(token=lists.API_TOKEN)
     autent = msg.text.split('|')
     if len(autent) != 2:
         Registred.count += 1
         await msg.answer(
-            text=f"Что то за фигня с паролем :("
+            text=f"Что то за не то с паролем :("
         )
         if Registred.count == 3:
             await msg.answer(
                 text="Теперь ждём минуту :("
             )
+            time_str = time.strftime("%Y-%m-%d %H:%M:%S")
+            l = [0, msg.from_user.id, time_str, f"{msg.from_user.id} три некорректные авторизации :)"]
+            await Repo.insert_into_date(l)
             sleep(60)
         return
     else:
@@ -77,6 +79,9 @@ async def cmd_auth(msg: Message, state: FSMContext):
                 await msg.answer(
                     text="Теперь ждём минуту :("
                     )
+                time_str = time.strftime("%Y-%m-%d %H:%M:%S")
+                l = [0, msg.from_user.id, time_str, f"{msg.from_user.id} три неверных попытки подбора пароля :)"]
+                await Repo.insert_into_date(l)
                 sleep(60)
             await state.clear()
             return
@@ -91,13 +96,14 @@ async def cmd_auth(msg: Message, state: FSMContext):
                     await msg.answer(
                         text="Теперь ждём минуту :("
                         )
+                    time_str = time.strftime("%Y-%m-%d %H:%M:%S")
+                    l = [0, msg.from_user.id, time_str, f"{msg.from_user.id} три хаотичных пароля :)"]
+                    await Repo.insert_into_date(l)
                     sleep(60)
                     await state.clear()
                     return
             else:
                 if result.tg_id not in lists.access:
-                    print(lists.access)
-                    print('test', result.tg_id)
                     await msg.answer(
                         text=f"Упс. Что то не так с данными :("
                     )
@@ -114,10 +120,9 @@ async def cmd_auth(msg: Message, state: FSMContext):
                 await msg.answer(
                     text=f"Набери\n/help, {result.name}"
                     )
-                await bot.send_message(my_tg_id, 'В бот зашёл ' + result.name)  #ошибка незакрытой сессии
+                await bot.send_message(my_id, 'В бот зашёл ' + result.name)  #ошибка незакрытой сессии
                 await state.clear()
                 return
-
 
 #мануал
 @router.message(F.text, Command("help"))
