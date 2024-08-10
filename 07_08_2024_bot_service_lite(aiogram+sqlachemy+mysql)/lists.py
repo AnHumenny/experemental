@@ -1,13 +1,17 @@
 API_TOKEN = 'TOKEN'
 
 help = ["/help - мануал по боту\n",
-        "/address - физический адрес, реквизиты\n",
-        "/registers - куда везти реестры\n",
         "/contact - контактная информация\n",
         "/view_azs - посмотреть автозаправки Газпром\n",
+        "/view_bs_id - посмотреть БС по номеру\n",
+        "/view_bs_address - посмотреть БС по адресу\n",
         "/view_man - посмотреть manual\n",
-        "/inline_url - внешние ссылки"
         ]
+
+block_word = [
+    "Гомель"
+]
+
 
 adm_help = [
             "/view_action - посмотреть действия(max = 20)\n"
