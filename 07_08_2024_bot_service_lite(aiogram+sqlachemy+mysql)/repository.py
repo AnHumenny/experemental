@@ -1,33 +1,27 @@
-
 from sqlalchemy import select, insert
-from create_db.database import DGazprom, DManual, DUser, DVisitedUser, new_session
+from create_db.database import DGazprom, DManual, DUser, DVisitedUser, DBaseStation, new_session
 
 
 class Repo:
-    #авторизация
     @classmethod
     async def select_pass(cls, login, password):
         async with new_session() as session:
-            print(login)
             q = select(DUser).where(DUser.login == login, DUser.password == password)
             result = await session.execute(q)
             answer = result.scalar()
             await session.close()
             return answer
 
-    
-    # select from DGazprom по номеру АЗС
+
     @classmethod
     async def select_azs(cls, number):
         async with new_session() as session:
-            print(number)
             q = select(DGazprom).where(DGazprom.number == number)
             result = await session.execute(q)
             answer = result.scalar()
             await session.close()
             return answer
 
-    # select from DManual по id 
     @classmethod
     async def select_manual(cls, ssid):
         async with new_session() as session:
@@ -37,7 +31,7 @@ class Repo:
             await session.close()
             return answer
 
-    # insert DVisitedUser
+    # insert into User | Project
     @classmethod
     async def insert_into_date(cls, l):
         async with new_session() as session:
@@ -46,13 +40,33 @@ class Repo:
             await session.commit()
             await session.close()
             return
-    
-    #select from DVisitedUser 
+
     @classmethod
     async def select_action(cls, number):
         async with new_session() as session:
             query = select(DVisitedUser).order_by(DVisitedUser.id.desc()).limit(int(number))
             result = await session.execute(query)
             answer = result.scalars().all()
+            await session.close()
+            return answer
+
+
+    @classmethod
+    async def select_bs_number(cls, number):
+        async with new_session() as session:
+            query = select(DBaseStation).where(DBaseStation.number == int(number))
+            result = await session.execute(query)
+            answer = result.scalar()
+            await session.commit()
+            await session.close()
+            return answer
+
+    @classmethod
+    async def select_bs_address(cls, address):
+        async with new_session() as session:
+            query = select(DBaseStation).where(DBaseStation.address.like(f"%{address}%"))
+            result = await session.execute(query)
+            answer = result.scalars()
+            await session.commit()
             await session.close()
             return answer
