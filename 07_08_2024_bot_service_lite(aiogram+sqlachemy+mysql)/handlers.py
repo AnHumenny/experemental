@@ -13,14 +13,19 @@ import keyboards
 from repository import Repo
 from time import sleep
 
+
 router = Router()
+
 
 class SelectInfo(StatesGroup):
     register_user = State()
     view_azs = State()
     view_man = State()
+    view_bs_number = State()
+    view_bs_address = State()
     view_action = State()
     select_action = State()
+
 
 class Registred:
     admin_OK = False
@@ -30,8 +35,6 @@ class Registred:
     name = ''
     count = 0
 
-named_tuple = time.localtime()  # получаем struct_time
-time_string = time.strftime("%m/%d/%Y, %H:%M", named_tuple)
 
 @router.message(StateFilter(None), Command("start"))
 async def start_handler(msg: Message, state=FSMContext):
@@ -55,13 +58,14 @@ async def cmd_auth(msg: Message, state: FSMContext):
         await msg.answer(
             text=f"Что то за не то с паролем :("
         )
+        print("count", Registred.count)
         if Registred.count == 3:
             await msg.answer(
                 text="Теперь ждём минуту :("
             )
-            time_str = time.strftime("%Y-%m-%d %H:%M:%S")
-            l = [0, msg.from_user.id, time_str, f"{msg.from_user.id} три некорректные авторизации :)"]
+            l = [0, msg.from_user.id, msg.date, f"{msg.from_user.id} три некорректные авторизации :)"]
             await Repo.insert_into_date(l)
+            print("count", Registred.count)
             sleep(60)
         return
     else:
@@ -75,12 +79,12 @@ async def cmd_auth(msg: Message, state: FSMContext):
             await msg.answer(
                 text=f"Что то не получилось с паролем :("
             )
+            print("count", Registred.count)
             if Registred.count == 3:
                 await msg.answer(
                     text="Теперь ждём минуту :("
                     )
-                time_str = time.strftime("%Y-%m-%d %H:%M:%S")
-                l = [0, msg.from_user.id, time_str, f"{msg.from_user.id} три неверных попытки подбора пароля :)"]
+                l = [0, msg.from_user.id, msg.date, f"{msg.from_user.id} три неверных попытки подбора пароля :)"]
                 await Repo.insert_into_date(l)
                 sleep(60)
             await state.clear()
@@ -96,8 +100,7 @@ async def cmd_auth(msg: Message, state: FSMContext):
                     await msg.answer(
                         text="Теперь ждём минуту :("
                         )
-                    time_str = time.strftime("%Y-%m-%d %H:%M:%S")
-                    l = [0, msg.from_user.id, time_str, f"{msg.from_user.id} три хаотичных пароля :)"]
+                    l = [0, msg.from_user.id, msg.date, f"{msg.from_user.id} три хаотичных пароля :)"]
                     await Repo.insert_into_date(l)
                     sleep(60)
                     await state.clear()
@@ -114,15 +117,15 @@ async def cmd_auth(msg: Message, state: FSMContext):
                     Registred.user_OK = True
                     Registred.login = result.login
                     Registred.name = result.name
-                    time_str = time.strftime("%Y-%m-%d %H:%M:%S")
-                    l = [0, result.login, time_str, "зашёл в чат"]
+                    l = [0, result.login, msg.date, "зашёл в чат"]
                     await Repo.insert_into_date(l)
                 await msg.answer(
                     text=f"Набери\n/help, {result.name}"
                     )
-                await bot.send_message(my_id, 'В бот зашёл ' + result.name)  #ошибка незакрытой сессии
+                await bot.send_message(408397675, 'В бот зашёл ' + result.name)  #ошибка незакрытой сессии
                 await state.clear()
                 return
+
 
 #мануал
 @router.message(F.text, Command("help"))
@@ -140,29 +143,6 @@ async def cmd_help(msg: Message):
             await msg.answer(**content.as_kwargs())
 
 
-#юридический адрес организации
-@router.message(F.text, Command("address"))
-async def message_handler(msg: Message):
-    if Registred.login not in lists.id_user and Registred.user_OK is False:  # проверка статуса
-        await msg.answer(
-            text=f"недостаточно прав доступа :("
-        )
-        return
-    else:
-        content = as_list("ООО '          '")
-        await msg.reply(**content.as_kwargs())
-
-#реестры
-@router.message(F.text, Command("registers"))
-async def message_handler(msg: Message):
-    if Registred.login not in lists.id_user and Registred.user_OK is False:  # проверка статуса
-        await msg.answer(
-            text=f"недостаточно прав доступа :("
-        )
-        return
-    else:
-        await msg.answer("        ")
-        
 #список контактов по МТС
 @router.message(F.text, Command('contact'))
 async def message_handler(msg: Message):
@@ -174,6 +154,7 @@ async def message_handler(msg: Message):
     else:
         content = as_list(*lists.contact)
         await msg.answer(**content.as_kwargs())
+
 
 #поиск АЗС по номеру
 @router.message(StateFilter(None), Command("view_azs"))
@@ -193,11 +174,11 @@ async def view_namber_azs(msg: Message, state: FSMContext):
 @router.message(SelectInfo.view_azs)
 async def select_azs(msg: Message, state: FSMContext):
     if msg.text is None:
-        await msg.answer(f"Непорядок  с данными :(")
+        await msg.answer(f"Фигня  с данными :(")
         await state.clear()
         return
     else:
-        number = msg.text
+        number = msg.text.strip()
         if number != '':
             answer = await Repo.select_azs(number)
             try:
@@ -206,8 +187,7 @@ async def select_azs(msg: Message, state: FSMContext):
 
                 response = hlink('Яндекс-карта', f'https://yandex.by/maps/?ll={answer.geo}&z=16')
                 await msg.answer(f"{response}")
-                time_str = time.strftime("%Y-%m-%d %H:%M:%S")
-                l = [0, Registred.name, time_str, f"посмотрел данные по {number}"]
+                l = [0, Registred.name, msg.date, f"посмотрел данные по {number}"]
                 await Repo.insert_into_date(l)
                 await state.clear()
             except AttributeError:
@@ -216,69 +196,90 @@ async def select_azs(msg: Message, state: FSMContext):
                 return
 
 
-#поиск manual по id
-@router.message(StateFilter(None), Command("view_man"))
-async def view_man_select(msg: Message, state: FSMContext):
+#поиск BS по number
+@router.message(StateFilter(None), Command("view_bs_id"))
+async def view_namber_bs(msg: Message, state: FSMContext):
     if Registred.login in lists.id_user and Registred.user_OK is True:  # проверка статуса
-        content = as_list(*lists.man)
-        await msg.answer(**content.as_kwargs())
         await msg.answer(
-            text=f"Choose id",
-            reply_markup=keyboards.make_row_keyboard(["1"])
+            text=f"номер БС",
+            reply_markup=keyboards.make_row_keyboard(["474"])
         )
-        await state.set_state(SelectInfo.view_man)
+        await state.set_state(SelectInfo.view_bs_number)
     else:
         await msg.answer(
             text=f"недостаточно прав доступа :(",
         )
         return
-    await state.set_state(SelectInfo.view_man)
-@router.message(SelectInfo.view_man)
-async def select_man(msg: Message, state: FSMContext):
+    await state.set_state(SelectInfo.view_bs_number)
+@router.message(SelectInfo.view_bs_number)
+async def select_bs_id(msg: Message, state: FSMContext):
     if msg.text is None:
-        await msg.answer(f"Непорядок  с данными :(")
+        await msg.answer(f"Фигня  с данными :(")
         await state.clear()
         return
     else:
-        number = msg.text
-        if number != '':
-            answer = await Repo.select_manual(number)
-            time_str = time.strftime("%Y-%m-%d %H:%M:%S")
-            l = [0, Registred.name, time_str, f"посмотрел в manual данные по id {number}"]
-            await Repo.insert_into_date(l)
-            try:
-                await msg.answer(f"{answer.tip} \n {answer.comment}")
-                await state.clear()
-            except AttributeError:
-                print('Пустой запрос')
-                await msg.answer(text=f"ID unknown!")
-                return
-
-#внешние ссылки
-@router.message(Command("inline_url"))
-async def cmd_inline_url(msg: types.Message):
-    if Registred.login in lists.id_user and Registred.user_OK is True:  # проверка статуса
-        time_str = time.strftime("%Y-%m-%d %H:%M:%S")
-        l = [0, Registred.name, time_str, f"заходил в внешние ссылки"]
+        number = msg.text.strip()
+        answer = await Repo.select_bs_number(number)
+        await msg.answer(f"{answer.address}\n{answer.comment}")
+        l = [0, Registred.name, msg.date, f"посмотрел данные по БС - {number}"]
         await Repo.insert_into_date(l)
-        builder = InlineKeyboardBuilder()
-        builder.row(types.InlineKeyboardButton(
-            text="График",
-            url=lists.list_link[0])
-        )
+        await state.clear()
+        if answer is None:
+            await msg.answer(text=f"Нет такой БС :(")
+            await state.clear()
+            return
+        return
 
+
+#поиск BS по street
+@router.message(StateFilter(None), Command("view_bs_address"))
+async def view_address_bs(msg: Message, state: FSMContext):
+    if Registred.login in lists.id_user and Registred.user_OK is True:  # проверка статуса
         await msg.answer(
-            'Куда пойдём?',
-            reply_markup=builder.as_markup(),
+            text=f"адреc БС(улица)",
+            reply_markup=keyboards.make_row_keyboard(["Телегина"])
         )
+        await state.set_state(SelectInfo.view_bs_address)
+    else:
+        await msg.answer(
+            text=f"недостаточно прав доступа :(",
+        )
+        return
+    await state.set_state(SelectInfo.view_bs_address)
+@router.message(SelectInfo.view_bs_address)
+async def select_bs_ad(msg: Message, state: FSMContext):
+    if msg.text is None:
+        await msg.answer(f"Фигня  с данными :(")
+        await state.clear()
+        return
+    else:
+        street = msg.text.strip()
+        if street in lists.block_word:
+            await msg.answer(f" Некорректный запрос ")
+            await state.clear()
+            return
+        answer = await Repo.select_bs_address(street)
+        if answer is not None:
+            for row in answer:
+                await msg.answer(f"\n{row.number} \n{row.address} \n{row.comment}  ")
+            l = [0, Registred.name, msg.date, f"посмотрел данные по - {street}"]
+            await Repo.insert_into_date(l)
+            await state.clear()
+        if answer is None:
+            print('Пустой запрос')
+            await msg.answer(text=f"Нет такой БС :(")
+            await state.clear()
+            return
+        return
 
 
 #выборка действий пользователя
 @router.message(StateFilter(None), Command("view_action"))
 async def view_action_select(msg: Message, state: FSMContext):
+    print('help', Registred.login, Registred.user_OK)
     if Registred.login in lists.log_admin and Registred.admin_OK is True:  # проверка статуса
         await msg.answer(
-            text=f"Пользовательсткие запросы(количество): ",
+            text=f"Пользовательские запросы(количество): ",
             reply_markup=keyboards.make_row_keyboard(["15"])
         )
         await state.set_state(SelectInfo.select_action)
@@ -291,7 +292,7 @@ async def view_action_select(msg: Message, state: FSMContext):
 @router.message(SelectInfo.select_action)
 async def select_action_user(msg: Message, state: FSMContext):
     if msg.text is None:
-        await msg.answer(f"Непорядок  с данными :(")
+        await msg.answer(f"Фигня  с данными :(")
         await state.clear()
         return
     else:
@@ -309,3 +310,121 @@ async def select_action_user(msg: Message, state: FSMContext):
             await msg.answer(f"{row}")
         await state.clear()
     return
+
+@router.message(Command("view_man"))
+async def cmd_random(message: types.Message):
+    if Registred.login not in lists.id_user and Registred.user_OK is False:  # проверка статуса
+        await message.answer(
+            text=f"недостаточно прав доступа :("
+        )
+        return
+    else:
+        builder = InlineKeyboardBuilder()
+        builder.add(types.InlineKeyboardButton(
+            text="HUAWEI-5100",
+            callback_data="1")
+        )
+        builder.add(types.InlineKeyboardButton(
+            text="Ubiquti",
+            callback_data="2")
+        )
+        builder.row(types.InlineKeyboardButton(
+            text="D-Link DGS-3000/3120",
+            callback_data="3")
+        )
+        builder.add(types.InlineKeyboardButton(
+            text="Cisco точки доступа ",
+            callback_data="4")
+        )
+        builder.row(types.InlineKeyboardButton(
+            text="Mikrotik 3G стартовая конфигурация",
+            callback_data="5")
+        )
+        builder.row(types.InlineKeyboardButton(
+            text="MikroTik 3G/4G сеть",
+            callback_data="6")
+        )
+        builder.add(types.InlineKeyboardButton(
+            text="MikroTik FTTX",
+            callback_data="7")
+        )
+        builder.row(types.InlineKeyboardButton(
+            text="Основные команды d-link",
+            callback_data="8")
+        )
+        await message.answer(
+            "Что надо?",
+            reply_markup=builder.as_markup()
+        )
+
+
+@router.callback_query(F.data == "1")
+async def send_random_value(callback: types.CallbackQuery):
+    answer = await Repo.select_manual(1)
+    time_str = time.strftime("%Y-%m-%d %H:%M:%S")
+    l = [0, Registred.name, time_str, f"посмотрел данные по HUAWEI-5100"]
+    await Repo.insert_into_date(l)
+    await callback.message.answer(f"{answer.tip} \n {answer.comment}")
+
+
+@router.callback_query(F.data == "2")
+async def send_random_value(callback: types.CallbackQuery):
+    answer = await Repo.select_manual(2)
+    time_str = time.strftime("%Y-%m-%d %H:%M:%S")
+    l = [0, Registred.name, time_str, f"посмотрел данные по Ubiquti"]
+    await Repo.insert_into_date(l)
+    await callback.message.answer(f"{answer.tip} \n {answer.comment}")
+
+
+@router.callback_query(F.data == "3")
+async def send_random_value(callback: types.CallbackQuery):
+    answer = await Repo.select_manual(3)
+    time_str = time.strftime("%Y-%m-%d %H:%M:%S")
+    l = [0, Registred.name, time_str, f"посмотрел данные по D-Link DGS-3000/3120"]
+    await Repo.insert_into_date(l)
+    await callback.message.answer(f"{answer.tip} \n {answer.comment}")
+
+
+@router.callback_query(F.data == "4")
+async def send_random_value(callback: types.CallbackQuery):
+    answer = await Repo.select_manual(4)
+    time_str = time.strftime("%Y-%m-%d %H:%M:%S")
+    l = [0, Registred.name, time_str, f"посмотрел данные по Cisco точки доступа"]
+    await Repo.insert_into_date(l)
+    await callback.message.answer(f"{answer.tip} \n {answer.comment}")
+
+
+@router.callback_query(F.data == "5")
+async def send_random_value(callback: types.CallbackQuery):
+    answer = await Repo.select_manual(5)
+    time_str = time.strftime("%Y-%m-%d %H:%M:%S")
+    l = [0, Registred.name, time_str, f"посмотрел данные по Mikrotik 3G стартовая конфигурация"]
+    await Repo.insert_into_date(l)
+    await callback.message.answer(f"{answer.tip} \n {answer.comment}")
+
+
+@router.callback_query(F.data == "6")
+async def send_random_value(callback: types.CallbackQuery):
+    answer = await Repo.select_manual(6)
+    time_str = time.strftime("%Y-%m-%d %H:%M:%S")
+    l = [0, Registred.name, time_str, f"MikroTik 3G/4G сеть"]
+    await Repo.insert_into_date(l)
+    await callback.message.answer(f"{answer.tip} \n {answer.comment}")
+
+
+@router.callback_query(F.data == "7")
+async def send_random_value(callback: types.CallbackQuery):
+    answer = await Repo.select_manual(7)
+    time_str = time.strftime("%Y-%m-%d %H:%M:%S")
+    l = [0, Registred.name, time_str, f"посмотрел данные по MikroTik FTTX"]
+    await Repo.insert_into_date(l)
+    await callback.message.answer(f"{answer.tip} \n {answer.comment}")
+
+
+@router.callback_query(F.data == "8")
+async def send_random_value(callback: types.CallbackQuery):
+    answer = await Repo.select_manual(8)
+    time_str = time.strftime("%Y-%m-%d %H:%M:%S")
+    l = [0, Registred.name, time_str, f"посмотрел Основные команды d-link"]
+    await Repo.insert_into_date(l)
+    await callback.message.answer(f"{answer.tip} \n {answer.comment}")
