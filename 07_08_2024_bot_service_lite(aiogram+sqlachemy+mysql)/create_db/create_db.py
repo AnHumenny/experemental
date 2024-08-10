@@ -1,17 +1,17 @@
 from time import sleep
 import pymysql
 import mysql.connector
-from database import DGazprom, DManual, DUser, DVisitedUser
+from database import DGazprom, DManual, DUser, DVisitedUser, DBaseStation
 from sqlalchemy import create_engine
 
 #
-user = "user" #input('user: ')   #условно прилетает извне
-password = "password"  # input('password: ')  #условно прилетает извне
-db_name = "db_name" #input("имя создаваемой/удаляемой базы/просмотр - просто Enter: ") #условно прилетает извне
+user = "admin" #input('user: ')   #условно прилетает извне
+password = "1qazxcde3"  # input('password: ')  #условно прилетает извне
+db_name = "orm_3" #input("имя создаваемой/удаляемой базы/просмотр - просто Enter: ") #условно прилетает извне
 
 
 engine = create_engine(
-    f"mysql+pymysql://user:password@localhost/{db_name}"
+    f"mysql+pymysql://admin:1qazxcde3@localhost/{db_name}"
 )
 
 
@@ -47,8 +47,8 @@ def create_tables():
     DManual.metadata.create_all(engine)
     DUser.metadata.create_all(engine)
     DVisitedUser.metadata.create_all(engine)
+    DBaseStation.metadata.create_all(engine)
     print("Ok! Tables created!")
 
 
 show_database()
-
