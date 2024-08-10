@@ -5,13 +5,13 @@ from database import DGazprom, DManual, DUser, DVisitedUser, DBaseStation
 from sqlalchemy import create_engine
 
 #
-user = "admin" #input('user: ')   #условно прилетает извне
-password = "1qazxcde3"  # input('password: ')  #условно прилетает извне
-db_name = "orm_3" #input("имя создаваемой/удаляемой базы/просмотр - просто Enter: ") #условно прилетает извне
+user = "user_name" #input('user: ')   #условно прилетает извне
+password = "user_password"  # input('password: ')  #условно прилетает извне
+db_name = "db_name" #input("имя создаваемой/удаляемой базы/просмотр - просто Enter: ") #условно прилетает извне
 
 
 engine = create_engine(
-    f"mysql+pymysql://admin:1qazxcde3@localhost/{db_name}"
+    f"mysql+pymysql://user_name:user_password@localhost/{db_name}"
 )
 
 
