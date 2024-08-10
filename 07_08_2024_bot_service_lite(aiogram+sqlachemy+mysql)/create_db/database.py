@@ -52,3 +52,11 @@ class DVisitedUser(Model):
     login = Column(String(30))
     date = Column(String(30))
     action = Column(String(50))
+
+
+class DBaseStation(Model):
+    __tablename__ = "base_station"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    comment = Column(String(255))
+    address = Column(String(255))
+    number = Column(Integer())
