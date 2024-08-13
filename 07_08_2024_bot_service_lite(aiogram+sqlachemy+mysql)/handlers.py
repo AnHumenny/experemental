@@ -90,7 +90,7 @@ async def cmd_auth(msg: Message, state: FSMContext):
             await state.clear()
             return
         else:
-            result = await Repo.select_pass(login, password)
+            result = await Repo.select_pass(login, password, msg.from_user.id)
             if result is None:
                 await msg.answer(
                     text=f"Не зашло с паролем :("
