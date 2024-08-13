@@ -4,9 +4,9 @@ from create_db.database import DGazprom, DManual, DUser, DVisitedUser, DBaseStat
 
 class Repo:
     @classmethod
-    async def select_pass(cls, login, password):
+    async def select_pass(cls, login, password, tg_id):
         async with new_session() as session:
-            q = select(DUser).where(DUser.login == login, DUser.password == password)
+            q = select(DUser).where(DUser.login == login, DUser.password == password, DUser.tg_id == tg_id)
             result = await session.execute(q)
             answer = result.scalar()
             await session.close()
