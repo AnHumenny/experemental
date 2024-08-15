@@ -31,7 +31,6 @@ class Repo:
             await session.close()
             return answer
 
-    # insert into User | Project
     @classmethod
     async def insert_into_date(cls, l):
         async with new_session() as session:
