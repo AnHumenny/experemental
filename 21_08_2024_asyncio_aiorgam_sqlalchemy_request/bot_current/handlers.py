@@ -116,7 +116,7 @@ async def cmd_auth(msg: Message, state: FSMContext):
                 await msg.answer(
                     text=f"Набери\n/help, {result.name}"
                     )
-                await bot.send_message(408397675, 'В бот зашёл ' + result.name)  #ошибка незакрытой сессии
+                await bot.send_message(my_tg_id, 'В бот зашёл ' + result.name)  #ошибка незакрытой сессии
                 await state.clear()
                 return
 
