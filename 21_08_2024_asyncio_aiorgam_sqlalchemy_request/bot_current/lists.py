@@ -1,9 +1,6 @@
-API_TOKEN = token
-
 help = [
         "/current_shedule - посмотреть курсы\n",
         "/current_image - посмотреть графику\n",
-
         ]
 
 
