@@ -2,9 +2,8 @@ import asyncio
 import logging
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
-from lists import API_TOKEN
+from config import API_TOKEN
 from handlers import router
-
 
 
 async def main():
