@@ -23,9 +23,7 @@ def get_currency_rate(temp):
     response = requests.get(url)
     soup = BeautifulSoup(response.content, "html.parser")
     curs = soup.find("div", class_="currency-detailed-change-card__changes").text
-
     return curs
-
 
 def actual_img(temp):
     day = []
@@ -60,15 +58,12 @@ def actual_img(temp):
              linestyle=choice(random_linestyle), marker=choice(random_marker))
     plt.grid(True)
     plt.legend(loc='upper left')
-
     def fig2img(fig):
         fig.savefig(buf)
         buf.seek(0)
         img = Image.open(buf)
         time.sleep(1)
-
         return img
-
     time.sleep(1)
     img = fig2img(figure)
     time.sleep(1)
@@ -79,12 +74,7 @@ def actual_img(temp):
     del actual
     return
 
-
-
-
-
 def create_all_graf():
-
     conn = pymysql.connect(host=config.host,
                            user=config.user,
                            password=config.password,
@@ -104,7 +94,6 @@ def create_all_graf():
             actual.append(str(rows[0]))
             curr.append(float(rows[0]))
             day.append(str(rows[1]))
-
         print("ok!")
         time.sleep(1)
         buf = io.BytesIO()
@@ -119,15 +108,12 @@ def create_all_graf():
                  linestyle=choice(random_linestyle), marker=choice(random_marker))
         plt.grid(True)
         plt.legend(loc='upper left')
-
         def fig2img(fig):
             fig.savefig(buf)
             buf.seek(0)
             img = Image.open(buf)
             time.sleep(1)
-
             return img
-
         time.sleep(1)
         img = fig2img(figure)
         time.sleep(1)
@@ -139,16 +125,12 @@ def create_all_graf():
     conn.close()
     return
 
-
-
-
 def insert_exchange():
     for row in config.list_url:
         response = requests.get(row)
         soup = BeautifulSoup(response.content, "html.parser")
         res = soup.find("div", class_="currency-detailed-change-card__value").text
         label = soup.find("span", class_="currency-detailed-change-card__currency").text
-
         actual_current = res.strip()
         if len(label) > 4:
             type_current = label[-3:]
