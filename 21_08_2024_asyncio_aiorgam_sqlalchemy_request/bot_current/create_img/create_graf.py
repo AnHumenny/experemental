@@ -1,4 +1,4 @@
-import datetime
+aimport datetime
 import time
 import pymysql
 import requests
@@ -35,7 +35,7 @@ def actual_img(temp):
                            database=config.database
                            )
     cursor = conn.cursor()
-    query = f'SELECT actual_current, date, type_current FROM stat_current WHERE type_current = %s ORDER BY date ASC LIMIT 7'
+    query = f'SELECT actual_current, date, type_current FROM stat_current WHERE type_current = %s ORDER BY date DESC LIMIT 5'
     cursor.execute(query, (temp,))
     result = cursor.fetchall()
     print(result)
@@ -48,7 +48,7 @@ def actual_img(temp):
     time.sleep(1)
     buf = io.BytesIO()
     figure = plt.gcf()
-    plt.title("Стат за 7 дней")
+    plt.title("Стат за 5 дней")
     plt.xlabel('День')
     plt.ylabel(f"Курс")
     random_color = ['magenta', 'red', 'black', 'green', 'blue', 'purple', 'brown']
@@ -83,7 +83,7 @@ def create_all_graf():
     cursor = conn.cursor()
     for row in config.check_list:
         print('запрашиваем', row)
-        query = f'SELECT actual_current, date, type_current FROM stat_current WHERE type_current = %s ORDER BY date ASC LIMIT 5'
+        query = f'SELECT actual_current, date, type_current FROM stat_current WHERE type_current = %s ORDER BY date DESC LIMIT 5'
         cursor.execute(query, (row,))
         result = cursor.fetchall()
         print("выводим результат запроса", result)
@@ -98,7 +98,7 @@ def create_all_graf():
         time.sleep(1)
         buf = io.BytesIO()
         figure = plt.gcf()
-        plt.title("Стат за 7 дней")
+        plt.title("Стат за 5 дней")
         plt.xlabel('День')
         plt.ylabel(f"Курс")
         random_color = ['magenta', 'red', 'black', 'green', 'blue', 'purple', 'brown']
@@ -138,10 +138,10 @@ def insert_exchange():
             type_current = label.strip()
         current_date = datetime.date.today().isoformat()
         print(actual_current, current_date, type_current)
-        conn = pymysql.connect(host="localhost",
-                               user="admin",
-                               password="1qazxcde3",
-                               database="orm_5"
+        conn = pymysql.connect(host=host,
+                               user=port,
+                               password=password,
+                               database=database
                                )
         cursor = conn.cursor()
         query = "insert into stat_current(actual_current, date, type_current) values( %s, %s, %s )"
