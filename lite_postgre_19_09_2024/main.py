@@ -21,6 +21,7 @@ if __name__ == "__main__":
             dtb = input("имя новой БД: ")
             create_database(dtb)
             input()
+          
         if q == "create_table":
             create_table()
             input()
