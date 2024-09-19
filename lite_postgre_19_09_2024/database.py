@@ -5,7 +5,7 @@ from sqlalchemy.orm import DeclarativeBase
 class Model(DeclarativeBase):
     pass
 
-
+#условный пример 
 class DUser(Model):
     __tablename__ = f"_user"
     id = Column(Integer, index=True, primary_key=True)
