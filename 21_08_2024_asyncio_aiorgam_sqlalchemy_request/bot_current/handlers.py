@@ -16,10 +16,8 @@ import config
 
 router = Router()
 
-
 class SelectInfo(StatesGroup):
     register_user = State()
-
 
 class Registred:
     user_OK = False
@@ -27,8 +25,6 @@ class Registred:
     login = ''
     name = ''
     count = 0
-
-
 
 @router.message(StateFilter(None), Command("start"))
 async def start_handler(msg: Message, state=FSMContext):
@@ -38,7 +34,6 @@ async def start_handler(msg: Message, state=FSMContext):
         reply_markup=keyboards.make_row_keyboard(['xxxxxx'])
     )
     await state.set_state(SelectInfo.register_user)  # ожидание выбора на виртуальной клавиатуре
-
 
 #ввод и проверка пароля
 @router.message(SelectInfo.register_user)
@@ -116,7 +111,6 @@ async def cmd_auth(msg: Message, state: FSMContext):
                 await state.clear()
                 return
 
-
 #мануал
 @router.message(F.text, Command("help"))
 async def cmd_help(msg: Message):
@@ -128,7 +122,6 @@ async def cmd_help(msg: Message):
     else:
         content = as_list(*lists.help)
         await msg.answer(**content.as_kwargs())
-
 
 @router.message(Command("current_shedule"))
 async def cmd_random(message: types.Message):
@@ -149,20 +142,17 @@ async def cmd_random(message: types.Message):
             callback_data="EURO")
         )
         builder.row(types.InlineKeyboardButton(
-            text="RUR",
-            callback_data="RUR")
+            text="RUB",
+            callback_data="RUB")
         )
         builder.add(types.InlineKeyboardButton(
             text="CNY",
             callback_data="CNY")
         )
-
-
         await message.answer(
             "Что надо?",
             reply_markup=builder.as_markup()
         )
-
 
 @router.callback_query(F.data == "USD")
 async def send_current_exchange(callback: types.CallbackQuery):
@@ -172,7 +162,6 @@ async def send_current_exchange(callback: types.CallbackQuery):
     await callback.message.answer(f"Курс доллара\n {res}")
     await callback.message.answer_photo(photo)
 
-
 @router.callback_query(F.data == "EURO")
 async def send_current_exchange(callback: types.CallbackQuery):
     res = get_currency_rate("EUR")
@@ -181,26 +170,21 @@ async def send_current_exchange(callback: types.CallbackQuery):
     await callback.message.answer(f"Курс евро\n {res}")
     await callback.message.answer_photo(photo)
 
-
-@router.callback_query(F.data == "RUR")
+@router.callback_query(F.data == "RUB")
 async def send_current_exchange(callback: types.CallbackQuery):
     res = get_currency_rate("RUB")
     with open(f'{config.abs_path}image_RUB.png', 'rb') as file:
         photo = BufferedInputFile(file.read(), 'any_filename')
-    await callback.message.answer(f"Курс российского рубля\n100 росс.руб. - {res}")
+    await callback.message.answer(f"Курс российского рубля\n100 росс.руб. {res}")
     await callback.message.answer_photo(photo)
-
 
 @router.callback_query(F.data == "CNY")
 async def send_current_exchange(callback: types.CallbackQuery):
     res = get_currency_rate("CNY")
     with open(f'{config.abs_path}image_CNY.png', 'rb') as file:
         photo = BufferedInputFile(file.read(), 'any_filename')
-    await callback.message.answer(f"Курс юаня\n10 юаней - {res}")
+    await callback.message.answer(f"Курс юаня\n10 юаней {res}")
     await callback.message.answer_photo(photo)
-
-
-
 
 @router.message(Command("current_image"))
 async def cmd_random(message: types.Message):
@@ -211,7 +195,6 @@ async def cmd_random(message: types.Message):
         return
     else:
         builder = InlineKeyboardBuilder()
-
         builder.row(types.InlineKeyboardButton(
             text="Статистика USD",
             callback_data="graf_usd")
@@ -221,7 +204,7 @@ async def cmd_random(message: types.Message):
             callback_data="graf_euro")
         )
         builder.row(types.InlineKeyboardButton(
-            text="Статистика RUR",
+            text="Статистика RUB",
             callback_data="graf_rub")
         )
         builder.add(types.InlineKeyboardButton(
@@ -230,15 +213,13 @@ async def cmd_random(message: types.Message):
         )
 
         builder.row(types.InlineKeyboardButton(
-            text="Стат за 5 дней ",
+            text="Стат за 10 дней ",
             callback_data="graf_all")
         )
-
         await message.answer(
             "Что надо?",
             reply_markup=builder.as_markup()
         )
-
 
 @router.callback_query(F.data == "graf_usd")
 async def send_current_graf(callback: types.CallbackQuery):
@@ -246,13 +227,11 @@ async def send_current_graf(callback: types.CallbackQuery):
         photo = BufferedInputFile(file.read(), 'any_filename')
     await callback.message.answer_photo(photo)
 
-
 @router.callback_query(F.data == "graf_eur")
 async def send_current_graf(callback: types.CallbackQuery):
     with open(f'{config.abs_path}image_EUR.png', 'rb') as file:
         photo = BufferedInputFile(file.read(), 'any_filename')
     await callback.message.answer_photo(photo)
-
 
 @router.callback_query(F.data == "graf_rub")
 async def send_current_graf(callback: types.CallbackQuery):
@@ -260,13 +239,11 @@ async def send_current_graf(callback: types.CallbackQuery):
         photo = BufferedInputFile(file.read(), 'any_filename')
     await callback.message.answer_photo(photo)
 
-
 @router.callback_query(F.data == "graf_cny")
 async def send_current_graf(callback: types.CallbackQuery):
     with open(f'{config.abs_path}image_CNY.png', 'rb') as file:
         photo = BufferedInputFile(file.read(), 'any_filename')
     await callback.message.answer_photo(photo)
-
 
 @router.callback_query(F.data == "graf_all")
 async def send_current_graf(callback: types.CallbackQuery):
