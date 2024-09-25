@@ -18,6 +18,7 @@ def get_currency_rate(temp):
         url = config.list_url[2]
     if temp == "CNY":
         url = config.list_url[3]
+    print(url)
     response = requests.get(url)
     soup = BeautifulSoup(response.content, "html.parser")
     curs = soup.find("div", class_="currency-detailed-change-card__changes").text
@@ -26,7 +27,7 @@ def get_currency_rate(temp):
 
 def actual_img(temp):
     day = []
-    curr = []
+    curr = []ыы
     actual = []
     conn = pymysql.connect(host=config.host,
                            user=config.user,
@@ -34,7 +35,7 @@ def actual_img(temp):
                            database=config.database
                            )
     cursor = conn.cursor()
-    query = f'SELECT actual_current, date, type_current FROM stat_current WHERE type_current = %s ORDER BY date DESC LIMIT 7'
+    query = f'SELECT actual_current, date, type_current FROM stat_current WHERE type_current = %s ORDER BY date DESC LIMIT 10'
     cursor.execute(query, (temp,))
     result = cursor.fetchall()
     print(result)
@@ -45,20 +46,19 @@ def actual_img(temp):
     conn.close()
     print("ok!")
     time.sleep(1)
-    plt.title("Стат за 7 дней")
+    plt.title("Стат за 10 дней")
     plt.xlabel('День')
-    plt.ylabel("Курс")
+    plt.ylabel(f"Курс")
     random_color = ['magenta', 'red', 'black', 'green', 'blue', 'purple', 'brown']
     random_marker = ['o', 'D', 's', 'd', '+', '*', 'p', '4', '3', '2', '1', '^', 'v']
     random_linestyle = ['-', '--', '-.', ':', 'solid', 'dashed', 'dashdot', 'dotted']
     axes = plt.subplot(1, 1, 1)
     axes.tick_params(axis='x', labelrotation=55)
-    axes.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%d.%m.%Y"))
     plt.plot(day, curr, label=temp + " ", color=choice(random_color),
              linestyle=choice(random_linestyle), marker=choice(random_marker))
     plt.tight_layout()
     plt.grid(True)
-    plt.legend(loc='upper left')
+    plt.legend(loc='best')
     time.sleep(1)
     plt.savefig(f'{config.abs_path}image_{temp}.png')
     time.sleep(1)
@@ -76,9 +76,9 @@ def create_all_graf():
                            database=config.database
                            )
     cursor = conn.cursor()
-        for row in config.check_list:
+    for row in config.check_list:
         print('запрашиваем', row)
-        query = f'SELECT actual_current, date, type_current FROM stat_current WHERE type_current = %s ORDER BY date DESC LIMIT 7'
+        query = f'SELECT actual_current, date, type_current FROM stat_current WHERE type_current = %s ORDER BY date DESC LIMIT 10'
         cursor.execute(query, (row,))
         result = cursor.fetchall()
         print("выводим результат запроса", result)
@@ -91,21 +91,19 @@ def create_all_graf():
             day.append(str(rows[1]))
         print("ok!")
         time.sleep(1)
-        plt.title("Стат за 7 дней")
+        plt.title("Стат за 10 дней")
         plt.xlabel('День')
-        plt.ylabel("Курс")
+        plt.ylabel(f"Курс")
         random_color = ['magenta', 'red', 'black', 'green', 'blue', 'purple', 'brown']
         random_marker = ['o', 'D', 's', 'd', '+', '*', 'p', '4', '3', '2', '1', '^', 'v']
         random_linestyle = ['-', '--', '-.', ':', 'solid', 'dashed', 'dashdot', 'dotted']
         axes = plt.subplot(1, 1, 1)
         axes.tick_params(axis='x', labelrotation=55)
-        axes.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%d.%m.%Y"))
         plt.plot(day, curr, label=row, color=choice(random_color),
                  linestyle=choice(random_linestyle), marker=choice(random_marker))
         plt.tight_layout()
         plt.grid(True)
-        plt.legend(loc='upper left')
-        time.sleep(1)
+        plt.legend(loc='best')
         time.sleep(1)
         plt.savefig(f'{config.abs_path}image_all.png')
         del day
@@ -122,6 +120,7 @@ def insert_exchange():
         soup = BeautifulSoup(response.content, "html.parser")
         res = soup.find("div", class_="currency-detailed-change-card__value").text
         label = soup.find("span", class_="currency-detailed-change-card__currency").text
+
         actual_current = res.strip()
         if len(label) > 4:
             type_current = label[-3:]
