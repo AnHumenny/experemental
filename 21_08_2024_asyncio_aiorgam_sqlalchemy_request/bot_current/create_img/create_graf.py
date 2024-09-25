@@ -1,13 +1,12 @@
-aimport datetime
+import datetime
 import time
+import matplotlib
 import pymysql
 import requests
 from bs4 import BeautifulSoup
-import io
-from PIL import Image
 from random import choice
 import matplotlib.pyplot as plt
-from bot_current import config
+import config
 
 
 def get_currency_rate(temp):
@@ -19,11 +18,11 @@ def get_currency_rate(temp):
         url = config.list_url[2]
     if temp == "CNY":
         url = config.list_url[3]
-    print(url)
     response = requests.get(url)
     soup = BeautifulSoup(response.content, "html.parser")
     curs = soup.find("div", class_="currency-detailed-change-card__changes").text
     return curs
+
 
 def actual_img(temp):
     day = []
@@ -35,7 +34,7 @@ def actual_img(temp):
                            database=config.database
                            )
     cursor = conn.cursor()
-    query = f'SELECT actual_current, date, type_current FROM stat_current WHERE type_current = %s ORDER BY date DESC LIMIT 5'
+    query = f'SELECT actual_current, date, type_current FROM stat_current WHERE type_current = %s ORDER BY date DESC LIMIT 7'
     cursor.execute(query, (temp,))
     result = cursor.fetchall()
     print(result)
@@ -46,33 +45,29 @@ def actual_img(temp):
     conn.close()
     print("ok!")
     time.sleep(1)
-    buf = io.BytesIO()
-    figure = plt.gcf()
-    plt.title("Стат за 5 дней")
+    plt.title("Стат за 7 дней")
     plt.xlabel('День')
-    plt.ylabel(f"Курс")
+    plt.ylabel("Курс")
     random_color = ['magenta', 'red', 'black', 'green', 'blue', 'purple', 'brown']
     random_marker = ['o', 'D', 's', 'd', '+', '*', 'p', '4', '3', '2', '1', '^', 'v']
     random_linestyle = ['-', '--', '-.', ':', 'solid', 'dashed', 'dashdot', 'dotted']
+    axes = plt.subplot(1, 1, 1)
+    axes.tick_params(axis='x', labelrotation=55)
+    axes.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%d.%m.%Y"))
     plt.plot(day, curr, label=temp + " ", color=choice(random_color),
              linestyle=choice(random_linestyle), marker=choice(random_marker))
+    plt.tight_layout()
     plt.grid(True)
     plt.legend(loc='upper left')
-    def fig2img(fig):
-        fig.savefig(buf)
-        buf.seek(0)
-        img = Image.open(buf)
-        time.sleep(1)
-        return img
     time.sleep(1)
-    img = fig2img(figure)
+    plt.savefig(f'{config.abs_path}image_{temp}.png')
     time.sleep(1)
-    img.save(f'{config.abs_path}image_{temp}.png')
     plt.close()
     del day
     del curr
     del actual
     return
+
 
 def create_all_graf():
     conn = pymysql.connect(host=config.host,
@@ -81,9 +76,9 @@ def create_all_graf():
                            database=config.database
                            )
     cursor = conn.cursor()
-    for row in config.check_list:
+        for row in config.check_list:
         print('запрашиваем', row)
-        query = f'SELECT actual_current, date, type_current FROM stat_current WHERE type_current = %s ORDER BY date DESC LIMIT 5'
+        query = f'SELECT actual_current, date, type_current FROM stat_current WHERE type_current = %s ORDER BY date DESC LIMIT 7'
         cursor.execute(query, (row,))
         result = cursor.fetchall()
         print("выводим результат запроса", result)
@@ -96,34 +91,30 @@ def create_all_graf():
             day.append(str(rows[1]))
         print("ok!")
         time.sleep(1)
-        buf = io.BytesIO()
-        figure = plt.gcf()
-        plt.title("Стат за 5 дней")
+        plt.title("Стат за 7 дней")
         plt.xlabel('День')
-        plt.ylabel(f"Курс")
+        plt.ylabel("Курс")
         random_color = ['magenta', 'red', 'black', 'green', 'blue', 'purple', 'brown']
         random_marker = ['o', 'D', 's', 'd', '+', '*', 'p', '4', '3', '2', '1', '^', 'v']
         random_linestyle = ['-', '--', '-.', ':', 'solid', 'dashed', 'dashdot', 'dotted']
+        axes = plt.subplot(1, 1, 1)
+        axes.tick_params(axis='x', labelrotation=55)
+        axes.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%d.%m.%Y"))
         plt.plot(day, curr, label=row, color=choice(random_color),
                  linestyle=choice(random_linestyle), marker=choice(random_marker))
+        plt.tight_layout()
         plt.grid(True)
         plt.legend(loc='upper left')
-        def fig2img(fig):
-            fig.savefig(buf)
-            buf.seek(0)
-            img = Image.open(buf)
-            time.sleep(1)
-            return img
         time.sleep(1)
-        img = fig2img(figure)
         time.sleep(1)
-        img.save(f'{config.abs_path}image_all.png')
+        plt.savefig(f'{config.abs_path}image_all.png')
         del day
         del curr
         del actual
     plt.close()
     conn.close()
     return
+
 
 def insert_exchange():
     for row in config.list_url:
@@ -138,10 +129,10 @@ def insert_exchange():
             type_current = label.strip()
         current_date = datetime.date.today().isoformat()
         print(actual_current, current_date, type_current)
-        conn = pymysql.connect(host=host,
-                               user=port,
-                               password=password,
-                               database=database
+        conn = pymysql.connect(host=config.host,
+                               user=config.user,
+                               password=config.password,
+                               database=config.database
                                )
         cursor = conn.cursor()
         query = "insert into stat_current(actual_current, date, type_current) values( %s, %s, %s )"
@@ -150,4 +141,3 @@ def insert_exchange():
         conn.commit()
         conn.close()
         time.sleep(5)
-
