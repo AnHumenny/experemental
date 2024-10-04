@@ -1,25 +1,29 @@
 from database import DUser, DCustomer
-from config import host, user, password
-from db_operation import create_database
+import config
+import db_operation
 from sqlalchemy import create_engine
 
-def create_table():
+def create_table():     #создание таблиц
+    dtbs = db_operation.Pg(host=config.host, port=config.port, user=config.user,
+                                password=config.password, database=config.database)
     question = input("создаём новую? Y/N: ")
     if question == "Y":
         dtb = input("enter database: ")
-        create_database(dtb)
+        dtbs.create_database(dtb)
         engine = create_engine(
-            f"postgresql://{user}:{password}@{host}/{dtb}", echo=True
+            f"postgresql://{config.user}:{config.password}@{config.host}/{dtb}", echo=True
         )
         q = input("добавляем таблицы? Y/N: ")
-        if q == "Y":
-            DUser.metadata.create_all(engine)
-            DCustomer.metadata.create_all(engine)
+        if q == "Y": 
+            DUser.metadata.create_all(engine)        #пример
+            DCustomer.metadata.create_all(engine)     #пример
+
     else:
         database = input("имя существующей БД: ")
         engine = create_engine(
-            f"postgresql://{user}:{password}@{host}/{database}", echo=True
+            f"postgresql://{config.user}:{config.password}@{config.host}/{database}", echo=True
             )
-        DUser.metadata.create_all(engine)
-        DCustomer.metadata.create_all(engine)
+        DUser.metadata.create_all(engine)     #пример
+        DCustomer.metadata.create_all(engine)  #пример
+
 
