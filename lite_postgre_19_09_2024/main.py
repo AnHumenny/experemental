@@ -7,26 +7,29 @@ class Operation:
         self.dtbs = db_operation.Pg(host=config.host, port=config.port, user=config.user,
                           password=config.password, database=config.database)
 
-        print("-" * 130, "\n",
-              "create_DB - создать базу |"
-              "create_user - создать пользователя | "  # доработать
-              "create_table - создать базу с таблицами \n "
-              "drop_DB - удалить базу | "
-              "drop_user - удалить пользователя | "  # доработать
-              "drop_table - удалить таблицу \n "
-              "view_table - посмотреть таблицы | "
-              "view_DB - посмотреть базы | "
-              "view_structure - посмотреть структуру таблицы \n "
-              "view_role - роли пользователя | ",
-              "view_user - все пользователи | \n",
-              "grant_DB - предоставить права на базу | ",
-              "grant_table - предоставить права на таблицу \n",
-              "-" * 130
-              )
-
         q = input("ваш выбор: ")
         if q == "quit":
             exit()
+
+        if q == "help":
+            print("-" * 130, "\n",
+                  "create_DB - создать базу |"
+                  "create_user - создать пользователя | "  # доработать
+                  "create_table - создать базу с таблицами \n "
+                  "drop_DB - удалить базу | "
+                  "drop_user - удалить пользователя | "  # доработать
+                  "drop_table - удалить таблицу \n "
+                  "view_table - посмотреть таблицы | "
+                  "view_DB - посмотреть базы | "
+                  "view_structure - посмотреть структуру таблицы \n "
+                  "view_role - роли пользователя | ",
+                  "view_user - все пользователи | \n",
+                  "grant_DB - предоставить права на базу | ",
+                  "grant_table - предоставить права на таблицу \n",
+                  "export_DB - экспортировать БД",
+                  "export_table - экспортировать данные таблицы (в csv)\n",
+                  "-" * 130
+                  )
 
         if q == "create_DB":
             dtb = input("имя новой БД: ")
@@ -152,6 +155,20 @@ class Operation:
                 result = self.dtbs.grant_privileges_table(username, dtb, table, privileges)
                 print(result)
             input()
+
+        if q == "export_DB":
+            db_name = input("имя базы: ")
+            output_file = input("имя выходного файла: ")
+            result = self.dtbs.export_database(db_name, output_file)
+            print(result)
+
+        if q == "export_table":
+            db_name = input("имя базы: ")
+            table = input("имя таблицы: ")
+            output_file = input("имя выходного файла: ")
+            result = self.dtbs.export_data_table(db_name, table, output_file)
+            print(result)
+
 
 if __name__ == "__main__":
     while True:
