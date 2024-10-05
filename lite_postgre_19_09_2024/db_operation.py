@@ -1,7 +1,11 @@
 import psycopg2
+import config
 from config import host, port, user, password, database
 from psycopg2 import sql
-
+import subprocess
+import os
+import pandas as pd
+from sqlalchemy import create_engine
 
 class Pg:
     def __init__(self, database, user, password, host, port):    #инициализация
@@ -194,3 +198,59 @@ class Pg:
         finally:
             self.cursor.close()
             self.conn.close()
+
+    @staticmethod
+    def export_db_to_sql(db_name, output_file):
+        conn = psycopg2.connect(
+            dbname=db_name,
+            user=user,
+            password=password,
+            host=host
+        )
+        cursor = conn.cursor()
+        with open(output_file, 'w') as f:
+            cursor.execute("SELECT table_name FROM information_schema.tables WHERE table_schema='public'")
+            tables = cursor.fetchall()
+            for table in tables:
+                table_name = table[0]
+                cursor.execute(
+                    f"SELECT column_name, data_type FROM information_schema.columns WHERE table_name='{table_name}'")
+                columns = cursor.fetchall()
+                f.write(f'-- Table: {table_name}\n')
+                f.write(f'CREATE TABLE {table_name} (\n')
+                for col in columns:
+                    f.write(f'    {col[0]} {col[1]},\n')
+                f.write(');\n\n')
+                cursor.execute(f"SELECT * FROM {table_name}")
+                rows = cursor.fetchall()
+                for row in rows:
+                    f.write(f"INSERT INTO {table_name} VALUES (")
+                    f.write(', '.join(f"'{str(val)}'" for val in row))
+                    f.write(');\n')
+                f.write('\n')
+                return True
+        cursor.close()
+        conn.close()
+
+    @staticmethod
+    def export_database(db_name, output_file):
+        os.environ['PGPASSWORD'] = config.password
+        try:
+            command = [
+                'pg_dump',
+                '--dbname=postgresql://{}:{}@{}:{}/{}'.format(config.user, config.password, config.host, config.port, db_name),
+                '--file={}'.format('dump/' + output_file),
+                '--no-owner',
+                '--no-privileges'
+            ]
+            subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            return "Экспорт завершен: {}".format('dump/' + output_file)
+        except subprocess.CalledProcessError as e:
+            return "Ошибка при экспорте базы данных: {}".format(e.stderr.decode())
+
+    @staticmethod
+    def export_data_table(db_name, table_name, output_file):
+        engine = create_engine(f'postgresql://{user}:{password}@{host}:{port}/{db_name}')
+        df = pd.read_sql_table(table_name, con=engine)
+        df.to_csv(f'dump/{output_file}.csv', index=False)
+        return f'данные из таблицы  "{table_name}" экспортированы в  {output_file}.csv успешно!'
