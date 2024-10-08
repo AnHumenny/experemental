@@ -169,8 +169,18 @@ class Operation:
             result = self.dtbs.export_data_table(db_name, table, output_file)
             print(result)
 
+        if q == "import_table":
+            db_name = input("имя базы: ")
+            table = input("имя таблицы: ")
+            column = input("колонки таблицы: ")
+            l_column = column.split(",")
+            l = "%s, " * len(l_column)
+            l = l[:-2]
+            path_to_file = input("путь к файлу: ")
+            result = self.dtbs.import_table(db_name, table, column, str(l), path_to_file)
+            print(result)
+
 
 if __name__ == "__main__":
     while True:
         testObj = Operation()
-
