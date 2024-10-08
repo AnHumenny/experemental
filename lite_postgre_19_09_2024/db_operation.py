@@ -232,7 +232,7 @@ class Pg:
         cursor.close()
         conn.close()
 
-    @staticmethod
+    @staticmethod                              #экспорт базы
     def export_database(db_name, output_file):
         os.environ['PGPASSWORD'] = config.password
         try:
@@ -248,9 +248,32 @@ class Pg:
         except subprocess.CalledProcessError as e:
             return "Ошибка при экспорте базы данных: {}".format(e.stderr.decode())
 
-    @staticmethod
+    @staticmethod                              #экспорт таблицы
     def export_data_table(db_name, table_name, output_file):
         engine = create_engine(f'postgresql://{user}:{password}@{host}:{port}/{db_name}')
         df = pd.read_sql_table(table_name, con=engine)
         df.to_csv(f'dump/{output_file}.csv', index=False)
         return f'данные из таблицы  "{table_name}" экспортированы в  {output_file}.csv успешно!'
+
+
+    @staticmethod                               #импорт таблицы
+    def import_table(db_name, table_name, column, l, csv_file_path):
+        try:
+            conn = psycopg2.connect(
+            host=host,
+            database=db_name,
+            user=user,
+            password=password
+            )
+            cursor = conn.cursor()
+            data = pd.read_csv(csv_file_path)
+            for index, row in data.iterrows():
+                insert_query = f"INSERT INTO {table_name} ({column}) VALUES ({l})"
+                cursor.execute(insert_query, tuple(row))
+            conn.commit()
+            return "Данные успешно импортированы."
+        except Exception as e:
+            return f"Ошибка: {e}"
+        finally:
+            cursor.close()
+            conn.close()
